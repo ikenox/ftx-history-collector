@@ -97,7 +97,7 @@ async fn main() {
             )
             .unwrap_or_else(|| {
                 // date is changed or cursor is not initialized yet
-                open_new_file(outdir, sub_account, &fill_date)
+                new_writer(outdir, sub_account, &fill_date)
                     .map(|result| result.expect("failed to open a new file"))
                     .right_future()
             })
@@ -178,7 +178,7 @@ fn signed_request(
     rb
 }
 
-async fn open_new_file(
+async fn new_writer(
     outdir: &PathBuf,
     sub_account: &Option<String>,
     date: &NaiveDate,
