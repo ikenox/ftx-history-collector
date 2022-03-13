@@ -16,6 +16,7 @@ $ cat ./credential.json
 
 # Execute
 $ RUST_LOG=info cargo run --release -- \
+    # Specify a directory in which you want to save downloaded data
     --outdir ./output \
     --credential ./credential.json \
     # You can omit this option if you want to obtain main account's history
