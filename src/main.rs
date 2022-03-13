@@ -25,7 +25,12 @@ pub struct Args {
 
 #[tokio::main]
 async fn main() {
+    std::env::set_var(
+        "RUST_LOG",
+        std::env::var("RUST_LOG").unwrap_or("info,surf=warn".to_string()),
+    );
     env_logger::init();
+
     let args: Args = Args::parse();
 
     let cred: FtxCredential = serde_json::from_str(
@@ -82,6 +87,7 @@ async fn main() {
                      writer,
                  }| {
                     if date == fill_date {
+                        // continue writing to current file
                         Some(futures::future::ready(writer).left_future())
                     } else {
                         // date is changed so change file to write
@@ -90,25 +96,9 @@ async fn main() {
                 },
             )
             .unwrap_or_else(|| {
-                // new writer
-                let filepath = outdir.join(format!(
-                    "{}_{}.tsv",
-                    sub_account
-                        .as_ref()
-                        .map(|s| s.as_str())
-                        .unwrap_or_else(|| "main"),
-                    fill_date,
-                ));
-                tokio::fs::create_dir_all(outdir)
-                    .then(|result| {
-                        result.expect("failed to create directories");
-                        File::create(filepath)
-                    })
-                    .map(|result| {
-                        csv_async::AsyncSerializer::from_writer(
-                            result.expect("failed to open file to write"),
-                        )
-                    })
+                // date is changed or cursor is not initialized yet
+                open_new_file(outdir, sub_account, &fill_date)
+                    .map(|result| result.expect("failed to open a new file"))
                     .right_future()
             })
             .await;
@@ -186,6 +176,28 @@ fn signed_request(
     }
 
     rb
+}
+
+async fn open_new_file(
+    outdir: &PathBuf,
+    sub_account: &Option<String>,
+    date: &NaiveDate,
+) -> Result<AsyncSerializer<File>> {
+    let filepath = outdir.join(format!(
+        "{}_{}.tsv",
+        sub_account
+            .as_ref()
+            .map(|s| s.as_str())
+            .unwrap_or_else(|| "main"),
+        date,
+    ));
+    tokio::fs::create_dir_all(outdir)
+        .await
+        .with_context(|| "failed to create directory to put a file")?;
+    let file = File::create(filepath)
+        .await
+        .with_context(|| "failed to create a file to write")?;
+    Ok(csv_async::AsyncSerializer::from_writer(file))
 }
 
 struct RequestCursor {
