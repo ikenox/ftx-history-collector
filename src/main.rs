@@ -184,7 +184,7 @@ async fn open_new_file(
     date: &NaiveDate,
 ) -> Result<AsyncSerializer<File>> {
     let filepath = outdir.join(format!(
-        "{}_{}.tsv",
+        "{}_{}.csv",
         sub_account
             .as_ref()
             .map(|s| s.as_str())
