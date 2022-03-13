@@ -15,7 +15,7 @@ $ cat ./credential.json
 > {"api_key": "XXX", "api_secret": "XXX"}
 
 # Execute
-$ RUST_LOG=info cargo run --release -- \
+$ cargo run --release -- \
     # Specify a directory in which you want to save downloaded data
     --outdir ./output \
     --credential ./credential.json \
