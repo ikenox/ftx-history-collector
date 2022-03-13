@@ -24,9 +24,9 @@ $ cargo run --release -- \
     
 # The collected history will be saved to the specified output directory
 $ ls ./output
-> sub1-2020-11-21.tsv sub1-2020-12-10.tsv sub1-2021-10-11.tsv sub1-2021-11-21.tsv
-  sub1-2020-11-22.tsv sub1-2020-12-20.tsv sub1-2021-10-13.tsv sub1-2021-11-24.tsv
-  sub1-2020-11-29.tsv sub1-2021-04-03.tsv sub1-2021-11-10.tsv sub1-2021-11-25.tsv 
+> sub1-2020-11-21.csv sub1-2020-12-10.csv sub1-2021-10-11.csv sub1-2021-11-21.csv
+  sub1-2020-11-22.csv sub1-2020-12-20.csv sub1-2021-10-13.csv sub1-2021-11-24.csv
+  sub1-2020-11-29.csv sub1-2021-04-03.csv sub1-2021-11-10.csv sub1-2021-11-25.csv 
   ...
 ```
 
