@@ -14,7 +14,7 @@ use tokio::fs::File;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
-pub struct Args {
+struct Args {
     #[clap(long, parse(from_os_str))]
     credential: PathBuf,
     #[clap(long, parse(from_os_str))]
@@ -211,35 +211,35 @@ struct WriterCursor {
 }
 
 #[derive(Deserialize)]
-pub struct FtxCredential {
-    pub api_key: String,
-    pub api_secret: String,
+struct FtxCredential {
+    api_key: String,
+    api_secret: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FtxResponse<T> {
+struct FtxResponse<T> {
     result: T,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FtxFill {
-    pub fee: f64,
-    pub fee_currency: Option<String>,
-    pub fee_rate: Option<f64>,
-    pub future: Option<String>,
-    pub id: u64,
-    pub liquidity: Option<String>,
-    pub market: Option<String>,
-    pub base_currency: Option<String>,
-    pub quote_currency: Option<String>,
-    pub order_id: Option<u64>,
-    pub trade_id: Option<u64>,
-    pub price: f64,
-    pub side: Option<String>,
-    pub size: f64,
-    pub time: DateTime<Local>,
+struct FtxFill {
+    fee: f64,
+    fee_currency: Option<String>,
+    fee_rate: Option<f64>,
+    future: Option<String>,
+    id: u64,
+    liquidity: Option<String>,
+    market: Option<String>,
+    base_currency: Option<String>,
+    quote_currency: Option<String>,
+    order_id: Option<u64>,
+    trade_id: Option<u64>,
+    price: f64,
+    side: Option<String>,
+    size: f64,
+    time: DateTime<Local>,
     #[serde(rename = "type")]
-    pub typ: Option<String>,
+    typ: Option<String>,
 }
