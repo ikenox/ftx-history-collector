@@ -1,6 +1,6 @@
 # ftx-history-downloader
 
-A script to download FTX execution history of your FTX account.
+A script to download trade history of your FTX account.
 
 ## Disclaimer
 
