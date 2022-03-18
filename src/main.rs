@@ -53,7 +53,14 @@ async fn main() {
          }| {
             // FTX API returns up to 5000 fills order by time desc
             // So always specifying start_time=zero and moves end_time to obtain all fills
-            get_fills(0, end_time.timestamp(), &cred, sub_account).map(move |result| {
+            get_fills(
+                0,
+                // +1 second to avoid missing
+                (end_time + chrono::Duration::seconds(1)).timestamp(),
+                &cred,
+                sub_account,
+            )
+            .map(move |result| {
                 let fills = result
                     .expect("failed to request")
                     .into_iter()
