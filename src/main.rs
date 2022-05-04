@@ -5,8 +5,8 @@ use anyhow::{Context, Error, Result};
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, Utc};
 use clap::Parser;
 use csv_async::AsyncSerializer;
+use futures::FutureExt;
 use futures::StreamExt;
-use futures::{FutureExt, TryFutureExt};
 use log::*;
 use serde::{Deserialize, Serialize};
 use surf::Request;
@@ -15,12 +15,21 @@ use tokio::fs::File;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
+    // A json file path of your FTX credential.
     #[clap(long, parse(from_os_str))]
     credential: PathBuf,
+    // An output directory.
     #[clap(long, parse(from_os_str))]
     outdir: PathBuf,
+    // optional. If not specified, the script will download main account's data.
     #[clap(long)]
     sub_account: Option<String>,
+    // optional. inclusive yyyy-MM-dd starting date.
+    #[clap(long)]
+    start: Option<NaiveDate>,
+    // optional. exclusive yyyy-MM-dd ending date.
+    #[clap(long)]
+    end: Option<NaiveDate>,
 }
 
 #[tokio::main]
@@ -42,9 +51,16 @@ async fn main() {
 
     let outdir = &args.outdir;
     let sub_account = &args.sub_account;
+
+    let start_time = args.start.map(|d| d.and_hms(0, 0, 0));
+    let end_time = args
+        .end
+        .map(|d| d.and_hms(0, 0, 0))
+        .unwrap_or(Utc::now().naive_utc().date().and_hms(0, 0, 0));
+
     futures::stream::unfold(
         RequestCursor {
-            end_time: Utc::now().naive_utc(),
+            end_time: end_time.clone(),
             oldest_fill_id: u64::MAX,
         },
         |RequestCursor {
@@ -57,15 +73,24 @@ async fn main() {
                 let fills = result
                     .expect("failed to request")
                     .into_iter()
-                    // avoid duplication
-                    .filter(|f| f.id < oldest_fill_id)
+                    .filter(|f: &FtxFill| {
+                        // avoid duplication
+                        f.id < oldest_fill_id
+                            // newer than the specified start time
+                            && start_time
+                                .map(|st| st <= f.time.naive_utc())
+                                .unwrap_or(true)
+                    })
                     .collect::<Vec<_>>();
-                let next_cursor = fills.last().map(|oldest| {
+                let next_cursor = fills.last().map(|oldest: &FtxFill| {
                     info!(
-                        "{} fills between {} and {}",
+                        "{} fills between {} and {} ({} - {})",
                         fills.len(),
                         oldest.time.timestamp(),
-                        end_time.timestamp()
+                        end_time.timestamp(),
+                        // TODO use the specified timezone
+                        oldest.time.naive_utc().format("%Y-%m-%dT%H:%M:%S"),
+                        end_time.format("%Y-%m-%dT%H:%M:%S"),
                     );
                     RequestCursor {
                         // +1 second because some fills on the same second maybe still remaining
@@ -116,7 +141,9 @@ async fn main() {
 }
 
 async fn get_fills(
+    // inclusive
     start_time: i64,
+    // exclusive
     end_time: i64,
     credential: &FtxCredential,
     sub_account: &Option<String>,
