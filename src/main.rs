@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::process::exit;
 use std::time::SystemTime;
 
 use anyhow::{Context, Error, Result};
@@ -41,6 +42,15 @@ async fn main() {
     env_logger::init();
 
     let args: Args = Args::parse();
+    if args
+        .start
+        .zip(args.end)
+        .map(|(start, end)| start >= end)
+        .unwrap_or(false)
+    {
+        error!("end date must be greater than start date");
+        exit(1);
+    }
 
     let cred: FtxCredential = serde_json::from_str(
         &tokio::fs::read_to_string(args.credential)
@@ -51,7 +61,6 @@ async fn main() {
 
     let outdir = &args.outdir;
     let sub_account = &args.sub_account;
-
     let start_time = args.start.map(|d| d.and_hms(0, 0, 0));
     let end_time = args
         .end
