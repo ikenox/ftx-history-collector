@@ -21,6 +21,9 @@ $ cargo run --release -- \
     --credential ./credential.json \
     # You can omit this option if you want to obtain main account's history
     --sub-account sub1
+    # Date range parameters to obtain (optional)
+    --start 2020-11-21
+    --end 2020-11-26
     
 # The collected history will be saved to the specified output directory
 $ ls ./output
